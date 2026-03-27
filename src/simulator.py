@@ -22,13 +22,6 @@ def run_ideal(circuit, shots=4096):
 def run_with_noise(circuit, noise_level, shots=4096):
     """
     Runs Grover circuit with depolarizing noise.
-
-    Args:
-        circuit: Grover QuantumCircuit
-        noise_level: float 0.0 to 0.1
-        shots: number of measurements
-    Returns:
-        counts dict
     """
     noise_model = NoiseModel()
     error_1q = depolarizing_error(noise_level, 1)
@@ -38,7 +31,7 @@ def run_with_noise(circuit, noise_level, shots=4096):
     noise_model.add_all_qubit_quantum_error(
         error_1q, ['h', 'x', 'z', 'rx', 'ry', 'rz'])
     noise_model.add_all_qubit_quantum_error(
-        error_2q, ['cx', 'cz', 'ccx'])
+        error_2q, ['cx', 'cz'])
     noise_model.add_all_qubit_quantum_error(
         error_3q, ['ccx'])
 
@@ -47,7 +40,6 @@ def run_with_noise(circuit, noise_level, shots=4096):
     result = sim.run(compiled, shots=shots).result()
     counts = result.get_counts()
     return counts
-
 
 def compute_success_probability(counts, target_state, shots=4096):
     """
