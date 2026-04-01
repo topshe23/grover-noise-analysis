@@ -13,16 +13,39 @@ def plot_noise_vs_success(noise_levels, success_probs, theoretical_prob,
     """Plots noise level vs success probability."""
     fig, ax = plt.subplots(figsize=(9, 5))
 
+    random_guess = 1 / 2**n_qubits
+
     ax.plot(noise_levels, success_probs, marker='o', color='steelblue',
-            linewidth=2.5, markersize=8, label='QAOA Success Probability')
+            linewidth=2.5, markersize=8, label="Grover's Success Probability")
     ax.axhline(y=theoretical_prob, color='green', linestyle=':',
                linewidth=1.8, label=f'Theoretical (no noise): {theoretical_prob:.4f}')
-    ax.axhline(y=1/2**n_qubits, color='red', linestyle='--',
-               linewidth=1.5, label=f'Random guessing: {1/2**n_qubits:.4f}')
+    ax.axhline(y=random_guess, color='red', linestyle='--',
+               linewidth=1.5, label=f'Random guessing: {random_guess:.4f}')
 
-    ax.fill_between(noise_levels, success_probs, 1/2**n_qubits,
-                    where=[s > 1/2**n_qubits for s in success_probs],
+    ax.fill_between(noise_levels, success_probs, random_guess,
+                    where=[s > random_guess for s in success_probs],
                     alpha=0.1, color='green', label='Quantum advantage zone')
+
+    # Find and annotate crossover point
+    crossover = None
+    for i in range(len(success_probs) - 1):
+        if success_probs[i] > random_guess and success_probs[i+1] <= random_guess:
+            crossover = noise_levels[i]
+    if crossover:
+        ax.axvline(x=crossover, color='purple', linestyle=':',
+                   alpha=0.7, linewidth=1.5)
+        ax.annotate(f'Quantum advantage\nlost at p~{crossover}',
+                    xy=(crossover, random_guess),
+                    xytext=(crossover + 0.01, random_guess + 0.15),
+                    fontsize=9, color='purple',
+                    arrowprops=dict(arrowstyle='->', color='purple', lw=1.2))
+
+    # Annotate starting point
+    ax.annotate(f'Ideal: {success_probs[0]:.4f}',
+                xy=(0, success_probs[0]),
+                xytext=(0.01, success_probs[0] - 0.08),
+                fontsize=9, color='steelblue',
+                arrowprops=dict(arrowstyle='->', color='steelblue', lw=1.2))
 
     ax.set_xlabel('Depolarizing Noise Level', fontsize=13)
     ax.set_ylabel('Success Probability', fontsize=13)
@@ -36,7 +59,6 @@ def plot_noise_vs_success(noise_levels, success_probs, theoretical_prob,
     plt.savefig(save_path, dpi=150)
     plt.close()
     print(f"Plot saved to {save_path}")
-
 
 def plot_qubits_vs_success(qubit_counts, success_probs_ideal,
                            success_probs_noisy, noise_level, save_path):

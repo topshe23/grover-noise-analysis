@@ -42,40 +42,39 @@ def experiment_noise_vs_success(n_qubits=3, target='101', shots=4096):
 
 def experiment_qubits_vs_success(noise_level=0.02, shots=4096):
     """
-    Experiment 2: How does qubit count affect success probability?
-    More qubits = deeper circuit = more noise impact.
+    Experiment 2: Qubit count vs success probability.
+    Compares n=2 (4 states) and n=3 (8 states) under ideal
+    and noisy conditions. Larger circuits show more noise impact.
+    Note: n>=4 excluded due to MCX compilation issue in Qiskit 2.3.
     """
     print("\nExperiment 2: Qubit Count vs Success Probability...")
 
-    qubit_counts = [2, 3, 4, 5]
-    targets = ['11', '101', '1011', '10101']
+    qubit_counts = [2, 3]
+    targets = ['11', '101']
     success_probs_ideal = []
     success_probs_noisy = []
 
     for n_qubits, target in zip(qubit_counts, targets):
         qc, n_iter = build_grover_circuit(n_qubits, target)
 
-        # Ideal
         counts_ideal = run_ideal(qc, shots=shots)
         prob_ideal = compute_success_probability(counts_ideal, target, shots)
         success_probs_ideal.append(prob_ideal)
 
-        # Noisy
         counts_noisy = run_with_noise(qc, noise_level, shots=shots)
         prob_noisy = compute_success_probability(counts_noisy, target, shots)
         success_probs_noisy.append(prob_noisy)
 
-        print(f"  n={n_qubits}: ideal={prob_ideal:.4f}, "
-              f"noisy={prob_noisy:.4f}, "
+        print(f"  n={n_qubits} ({2**n_qubits} states, depth={qc.depth()}): "
+              f"ideal={prob_ideal:.4f}, noisy={prob_noisy:.4f}, "
               f"degradation={prob_ideal-prob_noisy:.4f}")
 
     return qubit_counts, success_probs_ideal, success_probs_noisy, noise_level
 
-
 def experiment_iterations_vs_success(n_qubits=3, target='101', shots=4096):
     """
-    Experiment 3: How does number of Grover iterations affect success?
-    Shows the oscillation — too many iterations hurts performance.
+    Experiment 3: Iterations vs success probability.
+    Shows sinusoidal oscillation — too many iterations overshoots.
     """
     print("\nExperiment 3: Iterations vs Success Probability...")
 
@@ -97,7 +96,6 @@ def experiment_iterations_vs_success(n_qubits=3, target='101', shots=4096):
               f"theoretical={theoretical:.4f}")
 
     return iterations_list, success_probs, theoretical_probs
-
 
 if __name__ == "__main__":
 
